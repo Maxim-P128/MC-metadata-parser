@@ -11,10 +11,7 @@ namespace MC_modpack_tool
             scanner.OnErrorFound += ProcessException;
             scanner.OnModFound += PrintModInfo;
 
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
-
             string folderPath = "";
-            List<MinecraftFile> modsList = new List<MinecraftFile>();
 
             Console.WriteLine("Enter the path to the folder:");
             while (true) 
@@ -31,10 +28,10 @@ namespace MC_modpack_tool
                 }
             }
 
-            Console.WriteLine($"\n{"Mod name",-60} | {"MC Version",-10} | {"Loader",-10} | {"Size",10}");
-            Console.WriteLine(new string('-', 100));
+            Console.WriteLine($"\n{"Mod name",-55} │ {"MC Version",-10} │ {"Mod Version", -20} │ {"Loader",-10} │ {"Size",-10}");
+            Console.WriteLine(new string('─', 120));
 
-            scanner.Scan(folderPath);
+            scanner.ScanFolder(folderPath);
 
             Console.ReadLine();
         }
@@ -49,12 +46,12 @@ namespace MC_modpack_tool
             if (mod.IsCorrupted)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"{mod.Name,-60} | БИТЫЙ ФАЙЛ");
+                Console.WriteLine($"{mod.Name,-60} │ БИТЫЙ ФАЙЛ");
                 Console.ResetColor();
                 return;
             }
 
-            Console.WriteLine($"{mod.Name,-60} | {mod.MinecraftVersion,-10} | {mod.Loader,-10} | {mod.SizeInKb,10:F2} Kb");
+            Console.WriteLine($"{mod.Name,-55} │ {mod.MinecraftVersion,-10} │ {mod.ModVersion, -20} │ {mod.Loader,-10} │ {mod.SizeInKb,10:F2} Kb");
         }
     }
 }

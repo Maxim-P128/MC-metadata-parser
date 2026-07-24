@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
+using System.Text.Json;
 
 namespace MC_modpack_tool
 {
@@ -12,7 +14,7 @@ namespace MC_modpack_tool
         private readonly string[] McVersions = { "1.20.1", "1.16.5", "1.12", "1.12.2" };
 
 
-        public void Scan(string folderPath)
+        public void ScanFolder(string folderPath)
         {
             try
             {
@@ -32,6 +34,8 @@ namespace MC_modpack_tool
 
                     ParseModName(mod);
 
+                    ScanJar(mod);
+
                     OnModFound?.Invoke(mod);
                 }
             }
@@ -46,6 +50,40 @@ namespace MC_modpack_tool
 
         }
 
+        private void ScanJar(MinecraftFile mod)
+        {
+            using (ZipArchive jarFile = ZipFile.OpenRead(mod.FullPath))
+            {
+
+                ZipArchiveEntry modInfo = jarFile.GetEntry("META-INF/mods.toml");
+                if (modInfo != null)
+                {
+                    mod.Loader = "Forge";
+                    return;
+                }
+                modInfo = jarFile.GetEntry("mcmod.info");
+
+                if (modInfo != null)
+                {
+                     mod.Loader = "Forge";
+
+                     using (Stream stream = modInfo.Open())
+
+                     using (JsonDocument doc = JsonDocument.Parse(stream))
+                     {
+                         JsonElement root = doc.RootElement;
+
+                         if (root.ValueKind == JsonValueKind.Array)
+                         {
+                             JsonElement firstElement = root[0];
+
+                             mod.ModVersion = firstElement.GetProperty("version").GetString();
+                         }
+                     }
+                }
+                    return;
+            }
+        }
         private void ParseModName(MinecraftFile mod)
         {
             for (int i = 0; i < McVersions.Length; i++)
