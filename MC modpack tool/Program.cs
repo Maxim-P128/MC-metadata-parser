@@ -46,7 +46,7 @@ namespace MC_modpack_tool
             if (mod.IsCorrupted)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"{mod.Name,-60} │ БИТЫЙ ФАЙЛ");
+                Console.WriteLine($"{mod.Name,-60} │ CORRUPTED FILE");
                 Console.ResetColor();
                 return;
             }

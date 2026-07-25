@@ -32,7 +32,7 @@ namespace MC_modpack_tool
 
                     MinecraftFile mod = new MinecraftFile(fileInfo.Name, jarFile, size, IsCorrupted);
 
-                    ParseModName(mod);
+                   ParseModName(mod);
 
                     ScanJar(mod);
 
@@ -71,15 +71,27 @@ namespace MC_modpack_tool
 
                      using (JsonDocument doc = JsonDocument.Parse(stream))
                      {
-                         JsonElement root = doc.RootElement;
+                        JsonElement root = doc.RootElement;
 
-                         if (root.ValueKind == JsonValueKind.Array)
-                         {
-                             JsonElement firstElement = root[0];
+                        if (root.ValueKind == JsonValueKind.Array)
+                        {
+                            JsonElement firstElement = root[0];
 
-                             mod.ModVersion = firstElement.GetProperty("version").GetString();
-                         }
-                     }
+                            mod.ModVersion = firstElement.GetProperty("version").GetString();
+                        }
+
+                        if (root.ValueKind == JsonValueKind.Object)
+                        {
+                            JsonElement firstElement = root.GetProperty("modList")[0];
+
+                            mod.ModVersion = firstElement.GetProperty("version").GetString();
+
+                            if (firstElement.TryGetProperty("mcversion", out JsonElement mcVersionElement))
+                            {
+                                mod.MinecraftVersion = mcVersionElement.GetString();
+                            }
+                        }
+                    }
                 }
                     return;
             }
