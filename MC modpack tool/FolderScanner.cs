@@ -77,21 +77,30 @@ namespace MC_modpack_tool
                         {
                             JsonElement firstElement = root[0];
 
-                            mod.ModVersion = firstElement.GetProperty("version").GetString();
+                            if (firstElement.TryGetProperty("version", out JsonElement modVersionElement) && modVersionElement.GetString() != "${version}")
+                            {
+                                mod.ModVersion = modVersionElement.GetString()!;
+                            }
+                            if (firstElement.TryGetProperty("mcversion", out JsonElement mcVersionElement) && mcVersionElement.GetString() != "${mcversion}")
+                            {
+                                mod.MinecraftVersion = mcVersionElement.GetString()!;
+                            }
                         }
 
                         if (root.ValueKind == JsonValueKind.Object)
                         {
                             JsonElement firstElement = root.GetProperty("modList")[0];
 
-                            mod.ModVersion = firstElement.GetProperty("version").GetString();
-
-                            if (firstElement.TryGetProperty("mcversion", out JsonElement mcVersionElement))
+                            if (firstElement.TryGetProperty("version", out JsonElement modVersionElement) && modVersionElement.GetString() != "${version}")
                             {
-                                mod.MinecraftVersion = mcVersionElement.GetString();
+                                mod.ModVersion = modVersionElement.GetString()!;
+                            }
+                            if (firstElement.TryGetProperty("mcversion", out JsonElement mcVersionElement) && mcVersionElement.GetString() != "${mcversion}")
+                            {
+                                mod.MinecraftVersion = mcVersionElement.GetString()!;
                             }
                         }
-                    }
+                     }
                 }
                     return;
             }

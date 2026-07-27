@@ -38,7 +38,10 @@ namespace MC_modpack_tool
 
         private static void ProcessException(string message)
         {
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
+            Console.ResetColor();
+
         }
 
         private static void PrintModInfo(MinecraftFile mod)
@@ -51,7 +54,33 @@ namespace MC_modpack_tool
                 return;
             }
 
-            Console.WriteLine($"{mod.Name,-55} │ {mod.MinecraftVersion,-10} │ {mod.ModVersion, -20} │ {mod.Loader,-10} │ {mod.SizeInKb,10:F2} Kb");
+            Console.Write($"{mod.Name, -55} │ ");
+
+            if (mod.MinecraftVersion == "Unknown")
+            {
+                Console.ForegroundColor= ConsoleColor.Yellow;
+                Console.Write($"{"Unknown",-10}");
+                Console.ResetColor();
+                Console.Write(" │ ");
+            }
+            else
+                Console.Write($"{mod.MinecraftVersion,-10} │ ");
+
+
+            if (mod.ModVersion == "Unknown")
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write($"{"Unknown", -20}");
+                Console.ResetColor();
+                Console.Write(" │ ");
+            }
+            else
+                Console.Write($"{mod.ModVersion,-20} │ ");
+
+
+            Console.Write($"{mod.Loader,-10} │ ");
+
+            Console.WriteLine($"{mod.SizeInKb,10:F2} Kb");
         }
     }
 }
