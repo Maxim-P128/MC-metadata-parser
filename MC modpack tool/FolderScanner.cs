@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Formats.Tar;
 using System.IO;
 using System.IO.Compression;
-using System.Text.Json;
 
 namespace MC_modpack_tool
 {
@@ -52,58 +54,28 @@ namespace MC_modpack_tool
 
         private void ScanJar(MinecraftFile mod)
         {
-            using (ZipArchive jarFile = ZipFile.OpenRead(mod.FullPath))
+            try
             {
-
-                ZipArchiveEntry modInfo = jarFile.GetEntry("META-INF/mods.toml");
-                if (modInfo != null)
+                using (ZipArchive jarFile = ZipFile.OpenRead(mod.FullPath))
                 {
-                    mod.Loader = "Forge";
+
+                    ZipArchiveEntry modInfo = jarFile.GetEntry("META-INF/mods.toml")!;
+                    if (modInfo != null)
+                    {
+                        mod.Loader = "Forge";
+                        return;
+                    }
+                    modInfo = jarFile.GetEntry("mcmod.info")!;
+
+                    if (modInfo != null)
+                    {
+                        mod.Loader = "Forge";
+                        ParseJson(mod, modInfo);
+                    }
                     return;
                 }
-                modInfo = jarFile.GetEntry("mcmod.info");
-
-                if (modInfo != null)
-                {
-                     mod.Loader = "Forge";
-
-                     using (Stream stream = modInfo.Open())
-
-                     using (JsonDocument doc = JsonDocument.Parse(stream))
-                     {
-                        JsonElement root = doc.RootElement;
-
-                        if (root.ValueKind == JsonValueKind.Array)
-                        {
-                            JsonElement firstElement = root[0];
-
-                            if (firstElement.TryGetProperty("version", out JsonElement modVersionElement) && modVersionElement.GetString() != "${version}")
-                            {
-                                mod.ModVersion = modVersionElement.GetString()!;
-                            }
-                            if (firstElement.TryGetProperty("mcversion", out JsonElement mcVersionElement) && mcVersionElement.GetString() != "${mcversion}")
-                            {
-                                mod.MinecraftVersion = mcVersionElement.GetString()!;
-                            }
-                        }
-
-                        if (root.ValueKind == JsonValueKind.Object)
-                        {
-                            JsonElement firstElement = root.GetProperty("modList")[0];
-
-                            if (firstElement.TryGetProperty("version", out JsonElement modVersionElement) && modVersionElement.GetString() != "${version}")
-                            {
-                                mod.ModVersion = modVersionElement.GetString()!;
-                            }
-                            if (firstElement.TryGetProperty("mcversion", out JsonElement mcVersionElement) && mcVersionElement.GetString() != "${mcversion}")
-                            {
-                                mod.MinecraftVersion = mcVersionElement.GetString()!;
-                            }
-                        }
-                     }
-                }
-                    return;
             }
+            catch (InvalidDataException) { }
         }
         private void ParseModName(MinecraftFile mod)
         {
@@ -111,6 +83,60 @@ namespace MC_modpack_tool
             {
                 if (mod.Name.Contains(McVersions[i]))
                     mod.MinecraftVersion = McVersions[i];
+            }
+        }
+        private void ParseJson(MinecraftFile mod, ZipArchiveEntry modInfo)
+        {
+            try
+            {
+                using (Stream stream = modInfo.Open())
+                using (StreamReader sr = new StreamReader(stream))
+                using (JsonTextReader reader = new JsonTextReader(sr))
+                {
+                    JToken root = JToken.Load(reader);
+
+                    if (root.Type == JTokenType.Array && root.HasValues)
+                    {
+                        JToken firstElement = root[0]!;
+
+                        string? modVersion = (string?)firstElement!["version"];
+                        if (modVersion != null && modVersion != "${version}")
+                        {
+                            mod.ModVersion = modVersion;
+                        }
+
+                        string? mcVersion = (string?)firstElement["mcversion"];
+                        if (mcVersion != null && mcVersion != "${mcversion}")
+                        {
+                            mod.MinecraftVersion = mcVersion.Split(',')[0];
+                        }
+                    }
+
+                    if (root.Type == JTokenType.Object)
+                    {
+                        JToken? modList = root["modList"];
+                        if (modList != null && modList.Type == JTokenType.Array && modList.HasValues)
+                        {
+                            JToken firstElement = modList[0]!;
+
+                            string? modVersion = (string?)firstElement!["version"];
+                            if (modVersion != null && modVersion != "${version}")
+                            {
+                                mod.ModVersion = modVersion;
+                            }
+
+                            string? mcVersion = (string?)firstElement["mcversion"];
+                            if (mcVersion != null && mcVersion != "${mcversion}")
+                            {
+                                mod.MinecraftVersion = mcVersion.Split(',')[0];
+                            }
+                        }
+                    }
+                }
+            }
+            catch (JsonException ex)
+            {
+                OnErrorFound?.Invoke($"Failed to parse JSON of {mod.Name}: {ex.Message}");
             }
         }
     }

@@ -13,27 +13,34 @@ namespace MC_modpack_tool
 
             string folderPath = "";
 
-            Console.WriteLine("Enter the path to the folder:");
-            while (true) 
+            while (true)
             {
-                folderPath = Console.ReadLine()!.Trim('"');
-                if (Directory.Exists(folderPath))
+                Console.WriteLine("Enter the path to the folder:");
+                while (true)
                 {
-                    Console.WriteLine("Folder is founded");
-                    break;
+                    folderPath = Console.ReadLine()!.Trim('"');
+                    if (Directory.Exists(folderPath))
+                    {
+                        Console.WriteLine("Folder is founded");
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Folder not found. Enter again");
+                    }
                 }
-                else
-                {
-                    Console.WriteLine("Folder not found. Enter again");
-                }
+
+                Console.WriteLine($"\n{"Mod name",-55} │ {"MC Version",-10} │ {"Mod Version",-20} │ {"Loader",-10} │ {"Size",-10}");
+                Console.WriteLine(new string('─', 120));
+
+                scanner.ScanFolder(folderPath);
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Press enter to reset the console");
+                Console.ResetColor();
+                Console.ReadLine();
+                Console.Clear();
             }
-
-            Console.WriteLine($"\n{"Mod name",-55} │ {"MC Version",-10} │ {"Mod Version", -20} │ {"Loader",-10} │ {"Size",-10}");
-            Console.WriteLine(new string('─', 120));
-
-            scanner.ScanFolder(folderPath);
-
-            Console.ReadLine();
         }
 
         private static void ProcessException(string message)
@@ -46,13 +53,6 @@ namespace MC_modpack_tool
 
         private static void PrintModInfo(MinecraftFile mod)
         {
-            if (mod.IsCorrupted)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"{mod.Name,-60} │ CORRUPTED FILE");
-                Console.ResetColor();
-                return;
-            }
 
             Console.Write($"{mod.Name, -55} │ ");
 
@@ -79,8 +79,14 @@ namespace MC_modpack_tool
 
 
             Console.Write($"{mod.Loader,-10} │ ");
-
-            Console.WriteLine($"{mod.SizeInKb,10:F2} Kb");
+            if(mod.IsCorrupted == true)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("CORRUPTED");
+                Console.ResetColor();
+            }
+            else
+                Console.WriteLine($"{mod.SizeInKb,10:F2} Kb");
         }
     }
 }
