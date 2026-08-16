@@ -77,8 +77,16 @@ namespace MC_modpack_tool
             else
                 Console.Write($"{mod.ModVersion,-20} │ ");
 
+            if(mod.Loader == "Unknown")
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write($"{"Unknown",-10}");
+                Console.ResetColor();
+                Console.Write(" │ ");
+            }
+            else
+                Console.Write($"{mod.Loader,-10} │ ");
 
-            Console.Write($"{mod.Loader,-10} │ ");
             if(mod.IsCorrupted == true)
             {
                 Console.ForegroundColor = ConsoleColor.Red;

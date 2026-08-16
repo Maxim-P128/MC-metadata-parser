@@ -34,7 +34,7 @@ namespace MC_modpack_tool
 
                     MinecraftFile mod = new MinecraftFile(fileInfo.Name, jarFile, size, IsCorrupted);
 
-                   ParseModName(mod);
+                    ParseModName(mod);
 
                     ScanJar(mod);
 
@@ -59,33 +59,43 @@ namespace MC_modpack_tool
                 using (ZipArchive jarFile = ZipFile.OpenRead(mod.FullPath))
                 {
 
-                    ZipArchiveEntry modInfo = jarFile.GetEntry("META-INF/mods.toml")!;
+
+                    ZipArchiveEntry modInfo = jarFile.GetEntry("mcmod.info")!;
+
+                    if (modInfo != null)
+                    {
+                        mod.Loader = "Forge";
+                        ParseForgeJson(mod, modInfo);
+                        return;
+                    }
+
+                    modInfo = jarFile.GetEntry("fabric.mod.json")!;
+                    if (modInfo != null)
+                    {
+                        mod.Loader = "Fabric";
+                        ParseFabricJson(mod, modInfo);
+                        return;
+                    }
+                    modInfo = jarFile.GetEntry("META-INF/mods.toml")!;
                     if (modInfo != null)
                     {
                         mod.Loader = "Forge";
                         return;
                     }
-                    modInfo = jarFile.GetEntry("mcmod.info")!;
-
-                    if (modInfo != null)
-                    {
-                        mod.Loader = "Forge";
-                        ParseJson(mod, modInfo);
-                    }
-                    return;
                 }
             }
             catch (InvalidDataException) { }
         }
         private void ParseModName(MinecraftFile mod)
         {
+
             for (int i = 0; i < McVersions.Length; i++)
             {
                 if (mod.Name.Contains(McVersions[i]))
                     mod.MinecraftVersion = McVersions[i];
             }
         }
-        private void ParseJson(MinecraftFile mod, ZipArchiveEntry modInfo)
+        private void ParseForgeJson(MinecraftFile mod, ZipArchiveEntry modInfo)
         {
             try
             {
@@ -137,6 +147,28 @@ namespace MC_modpack_tool
             catch (JsonException ex)
             {
                 OnErrorFound?.Invoke($"Failed to parse JSON of {mod.Name}: {ex.Message}");
+            }
+        }
+
+        private void ParseFabricJson(MinecraftFile mod, ZipArchiveEntry modInfo)
+        {
+            using (Stream stream = modInfo.Open())
+            using (StreamReader sr = new StreamReader(stream))
+            using (JsonTextReader reader = new JsonTextReader(sr))
+            {
+                JToken root = JToken.Load(reader);
+
+                string? modVersion = (string?)root["version"];
+                if (modVersion != null && modVersion != "${version}")
+                {
+                    mod.ModVersion = modVersion.Split('+')[0];
+                }
+
+                string? mcVersion = (string?)root["mcversion"];
+                if (mcVersion != null && mcVersion != "${mcversion}")
+                {
+                    mod.MinecraftVersion = mcVersion.Split(',')[0];
+                }
             }
         }
     }
