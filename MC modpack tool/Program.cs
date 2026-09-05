@@ -21,7 +21,7 @@ namespace MC_modpack_tool
                     folderPath = Console.ReadLine()!.Trim('"');
                     if (Directory.Exists(folderPath))
                     {
-                        Console.WriteLine("Folder is founded");
+                        Console.WriteLine("Folder found");
                         break;
                     }
                     else
@@ -34,6 +34,8 @@ namespace MC_modpack_tool
                 Console.WriteLine(new string('─', 120));
 
                 scanner.ScanFolder(folderPath);
+
+                Console.WriteLine($"\nSize of all mods: {scanner.ModsSize / 1024,0:F2} Mb");
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Press enter to reset the console");

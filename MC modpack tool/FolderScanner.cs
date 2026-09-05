@@ -15,6 +15,7 @@ namespace MC_modpack_tool
 
         private readonly string[] McVersions = { "1.20.1", "1.16.5", "1.12", "1.12.2" };
 
+        public double ModsSize = 0;
 
         public void ScanFolder(string folderPath)
         {
@@ -31,6 +32,8 @@ namespace MC_modpack_tool
                     FileInfo fileInfo = new FileInfo(jarFile);
                     bool IsCorrupted = fileInfo.Length == 0;
                     double size = (double)fileInfo.Length / 1024;
+
+                    ModsSize += size;
 
                     MinecraftFile mod = new MinecraftFile(fileInfo.Name, jarFile, size, IsCorrupted);
 
