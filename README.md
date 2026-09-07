@@ -26,11 +26,14 @@ This is a C# console tool designed to read files in .jar format and parse metada
 
 ## Getting Started
 
-### Prerequisites
+### Option 1: Direct download
+Download the Windows executable directly
+**[Download MC-metadata-parser.exe (v1.0.0)](https://github.com/Maxim-P128/MC-metadata-parser/releases/latest/download/MC-metadata-parser.exe)**
+
+### Option 2: Run from source
+#### Prerequisites:
 
 * [.NET 8.0 SDK](https://dotnet.microsoft.com/download) or higher installed.
-
-### Installation & Run
 
 1. **Clone the repository:**
 
